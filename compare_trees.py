@@ -2,13 +2,15 @@
 
 import os;
 #from getTree import *;
-import getTree as gt
-import stopURL as su
-import url_process as up
+import getTree as gt;
+import stopURL as su;
+import url_process as up;
+
 #from stopURL import *;
 
 PATH = './TaoBaoData/txtData'
 stop_url_path = './TaoBaoData/noise0719_2016.txt'
+dump_dir = 'TREE/'
 
 class Forest:
     def __init__(self, PATH, stop_url_path):
@@ -81,7 +83,7 @@ class Forest:
 #                if has_similar:
 #                    for i in range(0,len(dismatch_list)):
 #                        content_vec[index] = up.replace_url( content_vec[index], dismatch_list[i])
-        dumpPath = 'TREE/'+t1.filename[21:30]+'&'+t2.filename[21:30]+'-CriticalInfo.txt'
+        dumpPath = dump_dir + t1.filename[21:30]+'&'+t2.filename[21:30]+'-CriticalInfo.txt'
         f_dump = open(dumpPath,'w')
         first_text = t1.treeTimestamp[0]
         for j in range(0,len(critical_path)):
