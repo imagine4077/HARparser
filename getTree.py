@@ -8,6 +8,7 @@ import json
 import re
 import url_process as up
 import numpy as np
+import codecs
 
 #file_Name = "1.txt"
 #file_Name = "0718_2221.txt"
@@ -21,9 +22,10 @@ import numpy as np
 
 def readJason( path ):
     x = open(path)
-#    x = x.read()
-#    return json.loads(x[1:])
-    tmp = json.load(x)
+    text = x.read()
+    if text.startswith(codecs.BOM_UTF8):
+        text = text[3:]
+    tmp = json.loads(text)
     x.close()
     return tmp
     
