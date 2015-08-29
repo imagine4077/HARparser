@@ -35,6 +35,3 @@ HarParser
 [1] Crussell J, Stevens R, Chen H. MAdFraud: Investigating ad fraud in android applications[C]//Proceedings of the 12th annual international conference on Mobile systems, applications, and services. ACM, 2014: 123-134.
 
 [2] Butkiewicz M, Wang D, Wu Z, et al. Klotski: Reprioritizing Web Content to Improve User Experience on Mobile Devices[J].
-
-    git remote add origin https://github.com/suziewong/osteach.github.com.git 
-
