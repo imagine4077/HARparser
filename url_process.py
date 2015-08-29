@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 import urlparse;
 import re;
+import os;
+import json;
+import codecs;
+
+def if_dir_exists( dir_path):
+    if not os.path.exists( dir_path):
+        os.mkdir( dir_path)
+    return
 
 def drop_variation(url):
     # drop variation in url which post by GET method
@@ -89,21 +97,11 @@ def replace_url( url, ind):
 #        string = string + item
     return ''.join(tmp)
     
-#        if self.has_node( url):
-#            return (True,[], self.search_url_index(url))
-#        else:
-#            max_rate = 0
-#            url_split_list = up.url_split( url)
-#            max_list =[]
-#            for my_url in self.treeContent:
-#                my_url_list = up.url_split(my_url)
-#                rate, dismatch_list = up.url_list_compare(url_split_list, my_url_list)
-#                print rate,"  ",
-#                if max_rate < rate:
-#                    max_rate = rate
-#                    max_list = dismatch_list
-#                if rate > self.SIMILAR_THRESHOLD:
-#                    print "SIMILAR URL:\n",my_url,"\n",url
-#                    return (True, dismatch_list, self.search_url_index(my_url))
-#            return (False, max_list, -1)
-#def get_
+def readJason( path ):
+    x = open(path)
+    text = x.read()
+    if text.startswith(codecs.BOM_UTF8):
+        text = text[3:]
+    tmp = json.loads(text)
+    x.close()
+    return tmp

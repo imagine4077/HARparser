@@ -4,11 +4,11 @@
 # 1.正则待改良 [Q1]
 # 2.re 的最大匹配 [Q2]
 ######################################
-import json
+
 import re
 import url_process as up
 import numpy as np
-import codecs
+
 
 #file_Name = "1.txt"
 #file_Name = "0718_2221.txt"
@@ -20,14 +20,38 @@ import codecs
 #onLine_re = r'((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?'
 
 
-def readJason( path ):
-    x = open(path)
-    text = x.read()
-    if text.startswith(codecs.BOM_UTF8):
-        text = text[3:]
-    tmp = json.loads(text)
-    x.close()
-    return tmp
+#def readJason( path ):
+#    x = open(path)
+#    text = x.read()
+#    if text.startswith(codecs.BOM_UTF8):
+#        text = text[3:]
+#    tmp = json.loads(text)
+#    x.close()
+#    return tmp
+
+
+def judge_if_existing( content_arr, flag_arr, value):
+    '''
+        help to find the first node that required the current URL 
+        in Function get_Tree
+    '''
+    if len(content_arr) != len(flag_arr):
+        print len(content_arr) ,'!=', len(flag_arr)
+        input('ERROR in FUNCTION get_firstNode_location( content_arr, flag_arr, value)\n')
+    if not(value in content_arr): #if no corresponding URL
+        return (False, 0)
+    index = -1
+    #if has corresponding URL
+    while index< len(content_arr):
+        if value in content_arr[index+1:]:
+            index = content_arr.index(value, index+1)
+            if flag_arr[index]< 0:
+                return (True, index)
+            else:
+                continue
+        else: #if has corresponding URL but all got.That's mean this page is the root of a new tree
+            return (False, 0)
+
     
 def get_Tree(PATH, dumpPATH, stop):
     '''
@@ -42,10 +66,25 @@ def get_Tree(PATH, dumpPATH, stop):
     '''
     onLine_re = r'((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?'
     
-    data = readJason(PATH)
-    treeRelation = []
-    treeContent = []
+    data = up.readJason(PATH)
+    
+    '''
+        currentItem = data['log']['entries'][i]
+        
+        treeContent -> up.drop_variation( currentItem['request']['url'] )
+        original_treeContent -> currentItem['request']['url']
+        indexList -> i(or -i if the node is root of a tree)
+        wait_interval -> currentItem['timings']['wait'], (ms毫秒)
+        mimeType -> currentItem['response']['content']['mimeType']
+    '''
+    treeRelation = [] #generate a matlab-treeplot()-like vector
+    treeContent = [] #record the simplified URL corresponding to "treeRelation"
+    original_treeContent = [] #record the original URL corresponding to "treeRelation"
     indexList = [] #record the index of 'entries' from whose content can find the url
+    wait_interval = [] #record the request-response interval of corresponding page
+    mimeType = [] #record the mimeType of corresponding page
+    treeTimestamp = [] #elements here tuples, (date, )
+    
     for i in range(0,len(data['log']['entries'])):
         currentItem = data['log']['entries'][i]
         ori_requestURL = currentItem['request']['url']
@@ -53,15 +92,32 @@ def get_Tree(PATH, dumpPATH, stop):
         if stop.is_stopURL(ori_requestURL):
             print "StopURL:",ori_requestURL
             continue
-#        timestamp = up.get_fiddle_timestamp(currentItem['startedDateTime'])
         
         #process this request-response pair
         #process request part
-        if requestURL in treeContent: #if the requested content has pushed in the tree
-            root = treeContent.index(requestURL) + 1
+        ifInTree, location = judge_if_existing( treeContent, wait_interval, requestURL)
+        if ifInTree: #if the requested content has pushed in the tree
+            root = location + 1 # get the root index for the response
+            # section below is used to debug
+            if wait_interval[location] >= 0:
+                print 'PATH 0f file:\t',PATH
+                print 'entity index:\t',i
+                print 'requested URL:\t',ori_requestURL
+                print 'URL of the existing node:\t',treeContent[location]
+                print 'node location in array:\t',location
+                print 'root of this node:\t',treeRelation[location]
+                print 'value of the existing node:\t',wait_interval[location]
+                input("EXCEPTION:wait_interval[location] >= 0!!!\n")
+            wait_interval[location] = currentItem['timings']['wait']
+            mimeType[location] = currentItem['response']['content']['mimeType']
+            treeTimestamp[location] = up.get_fiddle_timestamp(currentItem['startedDateTime'])
         else:
             treeRelation.append(0)
             treeContent.append(requestURL)
+            original_treeContent.append(ori_requestURL)
+            wait_interval.append( currentItem['timings']['wait'] )
+            mimeType.append(currentItem['response']['content']['mimeType'])
+            treeTimestamp.append(up.get_fiddle_timestamp(currentItem['startedDateTime']))
             indexList.append(-i)
             root = len(treeContent)
             
@@ -72,63 +128,72 @@ def get_Tree(PATH, dumpPATH, stop):
             for item in subPatt:
                 treeRelation.append( root )
 #                treeContent.append( str(item[0]) + ''.join(item[2:]) )
-                treeContent.append( up.drop_variation(item[0] + item[2] + item[6]) ) #[Q2]
+                url = item[0] + item[2] + item[6] # don't aky why, I'll tell you "because of love  ╮(￣▽￣)╭"
+                url = url.rstrip('\\')
+                treeContent.append( up.drop_variation(url) ) #[Q2]
+                original_treeContent.append( url )
+                wait_interval.append(-1)
                 indexList.append(i)
+                mimeType.append(u'')
+                treeTimestamp.append((u'',-1,u''))
         else:
             print i
             print currentItem['response']['content']['mimeType']
             
     #to get the timestamp
-    treeTimestamp = [(u'',0,u'') for i in range(0,len(treeRelation)) ]
-    for i in range(0,len(data['log']['entries'])):
-        currentItem = data['log']['entries'][i]
-        ori_requestURL = currentItem['request']['url']
-        requestURL = up.drop_variation( ori_requestURL );
-        timestamp = up.get_fiddle_timestamp(currentItem['startedDateTime'])
-        if requestURL in treeContent: #if the requested content has pushed in the tree
-            treeTimestamp[treeContent.index(requestURL)] = timestamp
+#    treeTimestamp = [(u'',0,u'') for i in range(0,len(treeRelation)) ]
+#    for i in range(0,len(data['log']['entries'])):
+#        currentItem = data['log']['entries'][i]
+#        ori_requestURL = currentItem['request']['url']
+#        requestURL = up.drop_variation( ori_requestURL );
+#        timestamp = up.get_fiddle_timestamp(currentItem['startedDateTime'])
+#        if requestURL in treeContent: #if the requested content has pushed in the tree
+#            treeTimestamp[treeContent.index(requestURL)] = timestamp
             
     f_dump = open(dumpPATH,'w')
-#    first_text = up.get_fiddle_timestamp(data['log']['entries'][0]['startedDateTime'])
-#    print first_text[1]
-#    input('timestamp aaaaaaaaaaaaaaaaaaaaa!')
     for j in range(0,len(treeRelation)):
-#        if treeTimestamp[j][1] != 0:
-#            tmp = treeTimestamp[j][1]- first_text[1]
-#        else:
-#            tmp = 0
-#        f_dump.write( str(treeRelation[j])+ ","+ treeContent[j]+","+str(tmp)+ "\n" )
-        f_dump.write( str(treeRelation[j])+ ","+ treeContent[j]+","+str(treeTimestamp[j][1])+ "\n" )
+        f_dump.write( str(j+1)+" : "+str(treeRelation[j])+ ", "+ str(wait_interval[j])+ ", "+ treeContent[j]+", " \
+        +str(mimeType[j])+ ", "+str(treeTimestamp[j])+ "\n" )
     f_dump.close()
-    return Tree(treeRelation, treeContent, treeTimestamp, PATH, indexList)
     
-##
-#treeRelation, treeContent, treeTimestamp, indexList = getTree(PATH, dumpPATH)
-#ob = getTree(PATH, dumpPATH)
-##
+    tree_info_mat = {}
+    tree_info_mat['treeRelation'] = treeRelation
+    tree_info_mat['treeContent'] = treeContent
+    tree_info_mat['indexList'] = indexList
+    tree_info_mat['original_treeContent'] = original_treeContent
+    tree_info_mat['wait_interval'] = wait_interval
+    tree_info_mat['mimeType'] = mimeType
+    tree_info_mat['filename'] = PATH
+    tree_info_mat['treeTimestamp'] = treeTimestamp 
+    tree_info_mat['dumpPath'] = dumpPATH
+    
+#    return Tree(treeRelation, treeContent, treeTimestamp, PATH, indexList)
+    return Tree(tree_info_mat)
+
 
 class Tree:
-    def __init__(self, treeRelation, treeContent, treeTimestamp, filename, indexList):
+#    def __init__(self, treeRelation, treeContent, treeTimestamp, filename, indexList, original_treeContent):
+    def __init__(self, tree_info_matrix):
         '''
         "treeRelation" is a vector that presents the tree's shape,
         and is the main line that we use to manage a tree. Other attributes
         corresponding to the order that "treeRelation" decide.
         '''
-        self.treeRelation = treeRelation
-        self.treeContent = treeContent
-        self.treeTimestamp = treeTimestamp
-        self.urlSet = set(treeContent)
-        self.filename = filename
-        self.indexList = indexList #record the index of 'entries' from whose content can find the url
-        self.SURROUND = 10
-        self.SIMILAR_THRESHOLD = 0.75
+        self.treeRelation = tree_info_matrix['treeRelation']
+        self.treeContent = tree_info_matrix['treeContent']
+        self.treeTimestamp = tree_info_matrix['treeTimestamp']
+        self.filename = tree_info_matrix['filename']
+        self.indexList = tree_info_matrix['indexList'] #record the index of 'entries' from whose content can find the url
+        self.original_treeContent = tree_info_matrix['original_treeContent']
+        self.mimeType = tree_info_matrix['mimeType']
+        self.wait_interval = tree_info_matrix['wait_interval']
+        self.dumpPath = tree_info_matrix['dumpPath']
+        self.SURROUND = 10 # for context comparing
+        self.SIMILAR_THRESHOLD = 0.75 # accuracy rate for URL similarity judgement
         
     def has_node( self, url):
         '''Judge if the tree has a node correspond to the url'''
-        if url in self.urlSet:
-            return True
-        else:
-            return False
+        return ((url in self.treeContent) or (url in self.original_treeContent))
             
     def has_similar(self, url):
         '''
@@ -160,7 +225,7 @@ class Tree:
         "position" == -1 means the url is not found.
         Otherwise, "position" is the position in response body text
         '''
-        data = readJason(self.filename)
+        data = up.readJason(self.filename)
         item_position = self.indexList[index]
         if item_position< 0:
             # the url is a request
@@ -168,8 +233,8 @@ class Tree:
         currentItem = data['log']['entries'][item_position]
         if currentItem['response']['content'].has_key('text'):
             text = currentItem['response']['content']['text']
-            position = text.find(self.treeContent[index])
-            url_len = len(self.treeContent[index])
+            position = text.find(self.original_treeContent[index])
+            url_len = len(self.original_treeContent[index])
             if position+1>= self.SURROUND and (len(text)-position-1)>= self.SURROUND:
                 front = text[position-self.SURROUND: position]
                 back = text[position+ url_len: position+ url_len+ self.SURROUND]
@@ -231,4 +296,8 @@ class Tree:
         '''
         output: node's index in the "treeRelation" list
         '''
-        return self.treeContent.index(url)
+        if url in self.treeContent:
+            ind = self.treeContent.index(url)
+        else:
+            ind = self.original_treeContent.index(url)
+        return ind
