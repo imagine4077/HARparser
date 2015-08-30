@@ -92,9 +92,6 @@ def replace_url( url, ind):
     tmp[ ind] = "*"
     print tmp
     print ''.join(tmp)
-#    string = ""
-#    for item in tmp:
-#        string = string + item
     return ''.join(tmp)
     
 def readJason( path ):
