@@ -9,26 +9,9 @@ import re
 import url_process as up
 import numpy as np
 
-
-#file_Name = "1.txt"
-#file_Name = "0718_2221.txt"
-#PATH = "TaoBaoData/"+ file_Name
-#dumpPATH = "TREE/"+ file_Name
-
 #正则有待改良
 #from : http://blog.csdn.net/weasleyqi/article/details/7912647
 #onLine_re = r'((http|ftp|https)://)(([a-zA-Z0-9\._-]+\.[a-zA-Z]{2,6})|([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}))(:[0-9]{1,4})*(/[a-zA-Z0-9\&%_\./-~-]*)?'
-
-
-#def readJason( path ):
-#    x = open(path)
-#    text = x.read()
-#    if text.startswith(codecs.BOM_UTF8):
-#        text = text[3:]
-#    tmp = json.loads(text)
-#    x.close()
-#    return tmp
-
 
 def judge_if_existing( content_arr, flag_arr, value):
     '''
