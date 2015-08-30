@@ -13,7 +13,7 @@ import random;
 PATH = './Data/HARData'
 stop_url_path = './Data/noise'
 dump_dir = './TREE/'
-FILTER_lonelyRoot = True
+FILTER_lonelyRoot = False
 TOP_K_time_consuming = 10
 
 class Forest:
@@ -27,6 +27,7 @@ class Forest:
         self.forest = []
         self.get_forest()
         self.intersec_tree = None
+        self.intersec_tree = self.intersection()
         while True:
             if not self.draw_a_tree():
                 break
@@ -70,23 +71,22 @@ class Forest:
                 parent_url = t1.treeContent[ t1_parent_ind]
                 has_similar, dismatch_list, similar_url_position = t2.has_similar( parent_url)
                 
-                if has_similar:
+                if has_similar: # if its parent node has similar
                     front_t1, back_t1, position_t1 = t1.get_surround_text( index)
                     children_index = t2.get_children_indexList( similar_url_position)
-#                    children_index = t2.get_children_indexList( t2.search_url_index(parent_url))
                     for ci in children_index:
                         front_t2, back_t2, position_t2 = t2.get_surround_text( ci)
-#                        if front_t1==front_t2 and back_t1==back_t2:
-                        if front_t1==front_t2: # and back_t1==back_t2:
+                        if front_t1==front_t2 and back_t1==back_t2:
+#                        if front_t1==front_t2: # and back_t1==back_t2:
                             print "similar:"
+                            print t1.filename," & ",t2.filename
                             print "t1:",front_t1," + ",t1.treeContent[index]," + ",back_t1,"\nposition:",position_t1
                             print "t2:",front_t2," + ",t2.treeContent[ci]," + ",back_t2,"\nposition:",position_t2
                             input("similar:")
                             critical_path[index] = t1_parent_ind
-#                            content_vec[index] = parent_url
-                        else:
-                            content_vec[index] = ""
-        dumpPath = self.dump_dir + t1.filename.split('/')[-1].split('.')[0]+'&'+t2.filename.split('/')[-1].split('.')[0]+'.txt'
+                if critical_path[index] == -1:
+                    content_vec[index] = ""
+        filename = t1.dumpPath.split('/')[-1].split('.')[0]+'&'+t2.filename.split('/')[-1].split('.')[0]+'.txt'
         
         tree_info_mat = {}
         tree_info_mat['treeRelation'] = critical_path
@@ -97,14 +97,9 @@ class Forest:
         tree_info_mat['mimeType'] = t1.mimeType
         tree_info_mat['filename'] = t1.filename
         tree_info_mat['treeTimestamp'] = t1.treeTimestamp 
-        tree_info_mat['dumpPath'] = dumpPath
-        critical_tree = gt.Tree( tree_info_mat)
+        tree_info_mat['dumpPath'] = self.dump_dir + filename
         
-        f_dump = open(dumpPath,'w')
-        for j in range(0,len(critical_path)):
-            f_dump.write( str(j+1)+":"+str(critical_path[j])+ ","+ content_vec[j]+","+str(t1.wait_interval[j])+ "\n" )
-        f_dump.close()
-#        return (critical_path, content_vec)
+        critical_tree = gt.Tree( tree_info_mat)
         return critical_tree
         
     def intersection(self, rand_select = False):
@@ -135,10 +130,15 @@ class Forest:
         for i in range(0,len(self.forest)):
             print i,": ",self.forest[i].filename
         print i+1,": all trees"
-        print i+2,": exit"
+        if self.intersec_tree != None:
+            print i+2,"critical path"
+        print i+3,": exit"
         ind = input("input the tree index:")
-        if ind == (1+len(self.forest)): # quit draw_a_tree
+        if ind == (2+len(self.forest)): # quit draw_a_tree
             return False
+        if ind == (1+len(self.forest)) and self.intersec_tree!=None: #draw critical path
+            self.painter.draw_tree( self.intersec_tree, TOP_K_time_consuming, FILTER_lonelyRoot)
+            return True
         if ind<0 or ind> (1+len(self.forest)):
             print "invalid input"
             return True

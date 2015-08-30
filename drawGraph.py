@@ -99,7 +99,7 @@ class TreePainter:
         dot.render(fig_coment+'_treeplot.dot', view=True)
         return dot
 
-    def draw_tree(self, tree, K, filter_lonelyRoot):
+    def draw_tree(self, tree, K=0, filter_lonelyRoot=True):
         tmp = {}
         tmp['wait_interval'] = tree.wait_interval
         tmp['treeContent'] = tree.treeContent

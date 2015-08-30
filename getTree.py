@@ -127,7 +127,6 @@ def get_Tree(PATH, dumpPATH, stop):
             subPatt = re.findall(onLine_re, string)
             for item in subPatt:
                 treeRelation.append( root )
-#                treeContent.append( str(item[0]) + ''.join(item[2:]) )
                 url = item[0] + item[2] + item[6] # don't aky why, I'll tell you "because of love  ╮(￣▽￣)╭"
                 url = url.rstrip('\\')
                 treeContent.append( up.drop_variation(url) ) #[Q2]
@@ -150,11 +149,11 @@ def get_Tree(PATH, dumpPATH, stop):
 #        if requestURL in treeContent: #if the requested content has pushed in the tree
 #            treeTimestamp[treeContent.index(requestURL)] = timestamp
             
-    f_dump = open(dumpPATH,'w')
-    for j in range(0,len(treeRelation)):
-        f_dump.write( str(j+1)+" : "+str(treeRelation[j])+ ", "+ str(wait_interval[j])+ ", "+ treeContent[j]+", " \
-        +str(mimeType[j])+ ", "+str(treeTimestamp[j])+ "\n" )
-    f_dump.close()
+#    f_dump = open(dumpPATH,'w')
+#    for j in range(0,len(treeRelation)):
+#        f_dump.write( str(j+1)+" : "+str(treeRelation[j])+ ", "+ str(wait_interval[j])+ ", "+ treeContent[j]+", " \
+#        +str(mimeType[j])+ ", "+str(treeTimestamp[j])+ "\n" )
+#    f_dump.close()
     
     tree_info_mat = {}
     tree_info_mat['treeRelation'] = treeRelation
@@ -166,8 +165,7 @@ def get_Tree(PATH, dumpPATH, stop):
     tree_info_mat['filename'] = PATH
     tree_info_mat['treeTimestamp'] = treeTimestamp 
     tree_info_mat['dumpPath'] = dumpPATH
-    
-#    return Tree(treeRelation, treeContent, treeTimestamp, PATH, indexList)
+
     return Tree(tree_info_mat)
 
 
@@ -190,6 +188,7 @@ class Tree:
         self.dumpPath = tree_info_matrix['dumpPath']
         self.SURROUND = 10 # for context comparing
         self.SIMILAR_THRESHOLD = 0.75 # accuracy rate for URL similarity judgement
+        self.dump_tree_content()
         
     def has_node( self, url):
         '''Judge if the tree has a node correspond to the url'''
@@ -301,3 +300,11 @@ class Tree:
         else:
             ind = self.original_treeContent.index(url)
         return ind
+        
+    def dump_tree_content(self):
+        f_dump = open(self.dumpPath,'w')
+        for j in range(0,len(self.treeRelation)):
+            f_dump.write( str(j+1)+" : "+str(self.treeRelation[j])+ ", "+ str(self.wait_interval[j])+ ", "+ self.treeContent[j]+", " \
+            +str(self.mimeType[j])+ ", "+str(self.treeTimestamp[j])+ "\n" )
+        f_dump.close()
+        return
