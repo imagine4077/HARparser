@@ -121,22 +121,6 @@ def get_Tree(PATH, dumpPATH, stop):
         else:
             print i
             print currentItem['response']['content']['mimeType']
-            
-    #to get the timestamp
-#    treeTimestamp = [(u'',0,u'') for i in range(0,len(treeRelation)) ]
-#    for i in range(0,len(data['log']['entries'])):
-#        currentItem = data['log']['entries'][i]
-#        ori_requestURL = currentItem['request']['url']
-#        requestURL = up.drop_variation( ori_requestURL );
-#        timestamp = up.get_fiddle_timestamp(currentItem['startedDateTime'])
-#        if requestURL in treeContent: #if the requested content has pushed in the tree
-#            treeTimestamp[treeContent.index(requestURL)] = timestamp
-            
-#    f_dump = open(dumpPATH,'w')
-#    for j in range(0,len(treeRelation)):
-#        f_dump.write( str(j+1)+" : "+str(treeRelation[j])+ ", "+ str(wait_interval[j])+ ", "+ treeContent[j]+", " \
-#        +str(mimeType[j])+ ", "+str(treeTimestamp[j])+ "\n" )
-#    f_dump.close()
     
     tree_info_mat = {}
     tree_info_mat['treeRelation'] = treeRelation
