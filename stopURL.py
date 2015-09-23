@@ -37,7 +37,7 @@ class Stop_url:
         '''judge if this url is a stopURL'''
         tmp = up.drop_variation(url)
 #        tmp = urlparse.urlparse(ori_requestURL)
-        if tmp in self.stopURLset:
+        if (tmp in self.stopURLset) or (url in self.stopURLset):
             return True
         else:
             return False
