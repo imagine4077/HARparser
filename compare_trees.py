@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os;
-#from getTree import *;
 import getTree as gt;
 import stopURL as su;
 import url_process as up;
@@ -9,8 +8,6 @@ import drawGraph;
 import random;
 import copy;
 from fuzzywuzzy import fuzz;
-
-#from stopURL import *;
 
 #PATH = './Data/HARData(cached)'
 PATH = './Data/HARData'
@@ -61,24 +58,6 @@ class Forest:
         for index in range(0,len(t1.treeRelation)):
             if not t2.has_node( t1.treeContent[index]):
                 critical_path[index] = -1
-                
-#            has_similar, dismatch_list, similar_url_position = t2.has_similar( t1.treeContent[index])
-#            if not has_similar:
-#                critical_path[index] = -1
-#                tmp_timestamp_list[index] = ()
-#            else:
-#                tmp_timestamp_list[index] = copy.deepcopy( t2.treeTimestamp[similar_url_position])
-#                tmp_url = critical_content[index]
-#                for item in dismatch_list:
-#                    tmp_url = up.replace_url(tmp_url, item)
-#                if len(dismatch_list)!=0:
-#                    print t1.filename," vs ", t2.filename
-#                    print '(before)',critical_content[index]
-#                    print '(after)',tmp_url
-##                    input("main.L62,replace")
-#                critical_content[index] = tmp_url
-##        self.timestampList.append(tmp_timestamp_list)
-##        input("critical node")
         return ( critical_path, critical_content)
         
     def get_replaced_tree(self, t1, t2):
