@@ -3,11 +3,17 @@ import urlparse;
 import url_process as up;
 import os;
 
+INIT_SET = set([r'http://gw.alicdn.com:443', r'http://api.m.taobao.com:443', \
+r'http://blogs.telerik.com/fiddler/posts/15-04-27/what-s-new-in-fiddler-4-5-1', \
+r'http://www.telerik.com/UpdateCheck.aspx?*', r'http://fiddlerbook.com', \
+r'http://tracking.miui.com/track/v1'])
+
 class Stop_url:
     def __init__(self, path):
         self.path = path
         self.file_list = os.listdir(path)
-        self.stopURLset = set([])
+#        self.stopURLset = set([])
+        self.stopURLset = INIT_SET
         self.get_stop_urls();
         self.stopHost = set([])
         self.EXCEPT = set([])
@@ -37,7 +43,7 @@ class Stop_url:
         '''judge if this url is a stopURL'''
         tmp = up.drop_variation(url)
 #        tmp = urlparse.urlparse(ori_requestURL)
-        if tmp in self.stopURLset:
+        if (tmp in self.stopURLset) or (url in self.stopURLset):
             return True
         else:
             return False
