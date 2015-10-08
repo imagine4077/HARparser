@@ -70,10 +70,13 @@ class TreePainter:
     def __init__(self, dump_dir):#
         self.dump_dir = dump_dir
     
-    def draw( self, vec, contentMatrix, fig_coment,K = 0, filter_lonelyRoot = True):
+    def draw( self, vec, contentMatrix, fig_coment,K = 0, filter_lonelyRoot = False, filter_noRequest = True):
         self.find_lonely(vec)
-        dot = Digraph(comment=fig_coment, engine='dot')
-        dot.format = 'png'
+#        dot = Digraph(comment=fig_coment, engine='dot')
+#        dot = Digraph(comment=fig_coment, engine='neato')
+        dot = Digraph(comment=fig_coment, engine='fdp')
+#        dot = Digraph(comment=fig_coment, engine='twopi')
+        dot.format = 'svg'
 #        dot.body.extend(['rankdir=LR']) # set vertical layout
         if K >0:
             time_consuming = self.most_timeConsuming(contentMatrix['wait_interval'],K)
@@ -87,25 +90,25 @@ class TreePainter:
             if i in time_consuming:
                 if contentMatrix['wait_interval'][i] != -1:
                     dot.node(str(i+1),"("+str(i+1)+")\n"+contentMatrix['mimeType'][i].split(';')[0].split('/')[-1]+':'+str(contentMatrix['wait_interval'][i]),color='tomato2', style='filled')
-                else:
+                elif not filter_noRequest:
                     dot.node(str(i+1),"("+str(i+1)+")\n"+"no request", style='filled')
             else:
                 if contentMatrix['wait_interval'][i] != -1:
                     dot.node(str(i+1),"("+str(i+1)+")\n"+contentMatrix['mimeType'][i].split(';')[0].split('/')[-1]+':'+str(contentMatrix['wait_interval'][i]),color='lightblue2', style='filled')
-                else:
+                elif not filter_noRequest:
                     dot.node(str(i+1),"("+str(i+1)+")\n"+"no request", style='filled')
-            if vec[i] != 0:
+            if vec[i] != 0 and ((not filter_noRequest) or contentMatrix['wait_interval'][i] != -1):
                 dot.edge(str(vec[i]), str(i+1))#,constraint='false')
         dot.render(fig_coment+'_treeplot.dot', view=True)
         return dot
 
-    def draw_tree(self, tree, K=0, filter_lonelyRoot=True):
+    def draw_tree(self, tree, K=0, filter_lonelyRoot=True, filter_noRequest = True):
         tmp = {}
         tmp['wait_interval'] = tree.wait_interval
         tmp['treeContent'] = tree.treeContent
         tmp['mimeType'] = tree.mimeType
         vec = tree.treeRelation
-        self.draw(vec, tmp, tree.dumpPath, K, filter_lonelyRoot)
+        self.draw(vec, tmp, tree.dumpPath, K, filter_lonelyRoot, filter_noRequest)
     
     def find_lonely( self, vec):
         '''
@@ -135,4 +138,43 @@ class TreePainter:
             else:
                 input('ERROR:drawTree.most_timeConsuming(), index <0')
         return ind_arr
-        
+    
+    def draw_table( self, vec, contentMatrix, fig_coment,K = 0, filter_lonelyRoot = False):
+        self.find_lonely(vec)
+        html = """<!DOCTYPE html>
+<html class="ui-mobile"><head><!-- base href="http://www.zhangxinxu.com/jq/mobile/" --> 
+	<title>traffic graph</title> 
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+
+	<link rel="stylesheet" href="%E9%91%AB%E7%A9%BA%E9%97%B4-%E9%91%AB%E7%94%9F%E6%B4%BB_files/jquery.css">
+    <style>
+	.ui-font-gray{color:#999; font-size:12px;}
+	</style>
+	<script type="text/javascript" src="%E9%91%AB%E7%A9%BA%E9%97%B4-%E9%91%AB%E7%94%9F%E6%B4%BB_files/jquery-1.js"></script>
+	<script type="text/javascript" src="%E9%91%AB%E7%A9%BA%E9%97%B4-%E9%91%AB%E7%94%9F%E6%B4%BB_files/jquery.js"></script>
+</head> """
+#        dot.body.extend(['rankdir=LR']) # set vertical layout
+        if K >0:
+            time_consuming = self.most_timeConsuming(contentMatrix['wait_interval'],K)
+        else:
+            time_consuming = []
+#        dot.body.append('center=ture')
+#        dot.node_attr.update(color='lightblue2', style='filled',width='0.04',height='0.04')
+        for i in range(0,len(vec)):
+            if (filter_lonelyRoot and (i in self.lonely)) or vec[i]<0:
+                continue
+            if i in time_consuming:
+                if contentMatrix['wait_interval'][i] != -1:
+                    dot.node(str(i+1),"("+str(i+1)+")\n"+contentMatrix['mimeType'][i].split(';')[0].split('/')[-1]+':'+str(contentMatrix['wait_interval'][i]),color='tomato2', style='filled')
+                else:
+                    dot.node(str(i+1),"("+str(i+1)+")\n"+"no request", style='filled')
+            else:
+                if contentMatrix['wait_interval'][i] != -1:
+                    dot.node(str(i+1),"("+str(i+1)+")\n"+contentMatrix['mimeType'][i].split(';')[0].split('/')[-1]+':'+str(contentMatrix['wait_interval'][i]),color='lightblue2', style='filled')
+                else:
+                    dot.node(str(i+1),"("+str(i+1)+")\n"+"no request", style='filled')
+            if vec[i] != 0:
+                dot.edge(str(vec[i]), str(i+1))#,constraint='false')
+        dot.render(fig_coment+'_treeplot.dot', view=True)
+        return dot
