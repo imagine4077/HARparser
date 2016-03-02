@@ -1,7 +1,6 @@
 HarParser
 ================
 ##### 作者：Albert Zhao
-##### 隶属：南京大学
 ##### 邮箱：imagine4077@gmail.com / zhaowei@dislab.nju.edu.cn
 
 1. python 2.7
